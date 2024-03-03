@@ -23,6 +23,8 @@
             <UniformGrid Rows="8" Columns="8" x:Name="PieceGrid"
                 RenderOptions.BitmapScalingMode="HighQuality">
             </UniformGrid>
+
+            <ContentControl x:Name="MenuContainer"/>
         </Grid>
     </Viewbox>
 </Window>

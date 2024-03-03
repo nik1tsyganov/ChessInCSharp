@@ -42,27 +42,36 @@ namespace ClassLogic
 
         private void AddStartPieces()
         {
+            // Placing Black Pawns
             for (int i = 0; i < 8; i++)
             {
-                this[i, 1] = new Pawn(Player.Black);
-                this[i, 6] = new Pawn(Player.White);
+                this[1, i] = new Pawn(Player.Black); // Black pawns on the 2nd row
             }
-            this[0, 0] = new Rook(Player.Black);
-            this[1, 0] = new Knight(Player.Black);
-            this[2, 0] = new Bishop(Player.Black);
-            this[3, 0] = new Queen(Player.Black);
-            this[4, 0] = new King(Player.Black);
-            this[5, 0] = new Bishop(Player.Black);
-            this[6, 0] = new Knight(Player.Black);
-            this[7, 0] = new Rook(Player.Black);
 
-            this[0, 7] = new Rook(Player.White);
-            this[1, 7] = new Knight(Player.White);
-            this[2, 7] = new Bishop(Player.White);
-            this[3, 7] = new Queen(Player.White);
-            this[4, 7] = new King(Player.White);
-            this[5, 7] = new Bishop(Player.White);
-            this[6, 7] = new Knight(Player.White);
+            // Placing White Pawns
+            for (int i = 0; i < 8; i++)
+            {
+                this[6, i] = new Pawn(Player.White); // White pawns on the 7th row
+            }
+
+            // Placing the rest of the Black pieces
+            this[0, 0] = new Rook(Player.Black);
+            this[0, 1] = new Knight(Player.Black);
+            this[0, 2] = new Bishop(Player.Black);
+            this[0, 3] = new Queen(Player.Black); // Adjust if the king and queen positions based on your board orientation
+            this[0, 4] = new King(Player.Black);
+            this[0, 5] = new Bishop(Player.Black);
+            this[0, 6] = new Knight(Player.Black);
+            this[0, 7] = new Rook(Player.Black);
+
+            // Placing the rest of the White pieces
+            this[7, 0] = new Rook(Player.White);
+            this[7, 1] = new Knight(Player.White);
+            this[7, 2] = new Bishop(Player.White);
+            this[7, 3] = new Queen(Player.White); // Adjust if the king and queen positions based on your board orientation
+            this[7, 4] = new King(Player.White);
+            this[7, 5] = new Bishop(Player.White);
+            this[7, 6] = new Knight(Player.White);
             this[7, 7] = new Rook(Player.White);
         }
 
@@ -74,6 +83,41 @@ namespace ClassLogic
         public bool IsEmpty(Position position)
         {
             return IsInsideBoard(position) && this[position.Row, position.Column] == null;
+        }
+
+        public IEnumerable<Position> PiecePositions()
+        {
+            for (int row = 0; row < 8; row++)
+            {
+                for (int col = 0; col < 8; col++)
+                {
+                    Position pos = new Position(row, col);
+                    if (!IsEmpty(pos))
+                    {
+                        yield return pos;
+                    }
+                }
+            }
+        }
+
+        public IEnumerable<Position> PiecePositionsFor(Player player)
+        {
+            return PiecePositions().Where(pos => this[pos].Color == player);
+        }
+
+        public bool IsInCheck(Player player)
+        {
+            return PiecePositionsFor(player.Opponent()).Any(pos => this[pos].CanCaptureOpponentKing(pos, this));
+        }
+
+        public Board Copy()
+        {
+            Board copy = new Board();
+            foreach (Position pos in PiecePositions())
+            {
+                copy[pos] = this[pos].Copy();
+            }
+            return copy;
         }
     }
 }

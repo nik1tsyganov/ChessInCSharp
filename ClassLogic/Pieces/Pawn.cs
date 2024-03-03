@@ -81,5 +81,10 @@ namespace ClassLogic
         {
             return FordwardMoves(position, board).Concat(DiagonalMoves(position, board));
         }
+
+        public override bool CanCaptureOpponentKing(Position from, Board board)
+        {
+            return DiagonalMoves(from, board).Any(move => board[move.ToPos] != null && board[move.ToPos].Type == PieceType.King);
+        }
     }
 }

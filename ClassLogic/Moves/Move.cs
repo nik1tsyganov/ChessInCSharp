@@ -12,5 +12,14 @@ namespace ClassLogic
         public abstract Position From { get; }
         public abstract Position ToPos { get; }
         public abstract void Execute(Board board);
+
+        // Perfect for normal move but for other moves, it should be overridden
+        public virtual bool IsLegal(Board board)
+        {
+            Player player = board[From].Color;
+            Board copy = board.Copy();
+            Execute(copy);
+            return !copy.IsInCheck(player);
+        }
     }
 }

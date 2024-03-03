@@ -10,17 +10,18 @@
         WindowStartupLocation="CenterScreen">
     <Viewbox>
         <Grid x:Name="BoardGrid"
-                  Width="600" Height="600">
+                  Width="600" Height="600"
+                  MouseDown="BoardGrid_MouseDown">
             <Grid.Background>
                 <ImageBrush ImageSource="Assets/Board.png"/>
             </Grid.Background>
 
-            <UniformGrid 
-                             Rows="8" 
-                             Columns="8"
-                             x:Name="PieceGrid"
-                RenderOptions.BitmapScalingMode="HighQuality">
+            <UniformGrid x:Name="HighlightGrid"
+                         Rows="8" Columns="8">
+            </UniformGrid>
 
+            <UniformGrid Rows="8" Columns="8" x:Name="PieceGrid"
+                RenderOptions.BitmapScalingMode="HighQuality">
             </UniformGrid>
         </Grid>
     </Viewbox>

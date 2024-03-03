@@ -40,5 +40,10 @@ namespace ClassLogic
         {
             return MovePositions(position, board).Select(pos => new NormalMove(position, pos));
         }
+
+        public override bool CanCaptureOpponentKing(Position from, Board board)
+        {
+            return MovePositions(from, board).Any(pos => board[pos] != null && board[pos].Type == PieceType.King);
+        }
     }
 }

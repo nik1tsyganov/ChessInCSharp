@@ -19,7 +19,10 @@ namespace ChessUI
     public partial class MainWindow : Window
     {
         private readonly Image[,] pieceImages = new Image[8, 8];
+        private readonly Rectangle[,] highlights = new Rectangle[8, 8];
+        private readonly Dictionary<Position, Move> moveCache = new Dictionary<Position, Move>();
         private GameState gameState;
+        private Position selectedPosition = null;
 
         public MainWindow()
         {
@@ -28,21 +31,22 @@ namespace ChessUI
 
             gameState = new GameState(Player.White, Board.Initial());
             DrawBoard(gameState.Board);
+            SetCursor(gameState.CurrentPlayer);
         }
 
         private void InitializeBoard()
         {
-            var pieceGrid = FindName("PieceGrid") as UniformGrid;
-            if (pieceGrid != null)
+            for (int row = 0; row < 8; row++)
             {
-                for (int row = 0; row < 8; row++)
+                for (int column = 0; column < 8; column++)
                 {
-                    for (int column = 0; column < 8; column++)
-                    {
-                        Image image = new Image();
-                        pieceImages[row, column] = image;
-                        pieceGrid.Children.Add(image);
-                    }
+                    Image image = new Image();
+                    pieceImages[row, column] = image;
+                    PieceGrid.Children.Add(image);
+
+                    Rectangle highlight = new Rectangle();
+                    highlights[row, column] = highlight;
+                    HighlightGrid.Children.Add(highlight);
                 }
             }
         }
@@ -53,8 +57,99 @@ namespace ChessUI
             {
                 for (int column = 0; column < 8; column++)
                 {
-                    pieceImages[row, column].Source = Images.GetImage(board[row, column]);
+                    Piece piece = board[row, column];
+                    pieceImages[row, column].Source = Images.GetImage(piece);
                 }
+            }
+        }
+
+        private void BoardGrid_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            Point point = e.GetPosition(BoardGrid);
+            Position pos = ToSquarePosition(point);
+            if (selectedPosition == null)
+            {
+                OnFromPositionSelected(pos);
+            }
+            else
+            {
+                OnToPositionSelected(pos);
+            }
+        }
+
+        private void OnFromPositionSelected(Position position)
+        {
+            IEnumerable<Move> moves = gameState.LegalMovesForPiece(position);
+            if (moves.Any())
+            {
+                selectedPosition = position;
+                CacheMoves(moves);
+                ShowHighlights(position);
+            }
+        }
+
+        private void OnToPositionSelected(Position position)
+        {
+            selectedPosition = null;
+            HideHighlights();
+
+            if (moveCache.TryGetValue(position, out Move move))
+            {
+                HandleMove(move);
+            }   
+        }
+
+        private void HandleMove(Move move)
+        {
+            gameState.MakeMove(move);
+            DrawBoard(gameState.Board);
+            SetCursor(gameState.CurrentPlayer);
+        }
+
+        private Position ToSquarePosition(Point point)
+        {
+            double squareSize = BoardGrid.ActualWidth / 8;
+            int row = (int)(point.Y / squareSize);
+            int column = (int)(point.X / squareSize);
+            return new Position(row, column);
+        }
+
+        private void CacheMoves(IEnumerable<Move> moves)
+        {
+            moveCache.Clear();
+            foreach (Move move in moves)
+            {
+                moveCache[move.ToPos] = move;
+            }
+        }
+
+        private void ShowHighlights(Position position)
+        {
+            Color color = Color.FromArgb(150, 125, 255, 125);
+
+            foreach (Position to in moveCache.Keys)
+            {
+                highlights[to.Row, to.Column].Fill = new SolidColorBrush(color);
+            }
+        }
+
+        private void HideHighlights()
+        {
+            foreach (Position to in moveCache.Keys)
+            {
+                highlights[to.Row, to.Column].Fill = new SolidColorBrush(Colors.Transparent);
+            }
+        }
+
+        private void SetCursor(Player player)
+        {
+            if (player == Player.White)
+            {
+                Cursor = ChessCursors.WhiteCursor;
+            }
+            else
+            {
+                Cursor = ChessCursors.BlackCursor;
             }
         }
     }

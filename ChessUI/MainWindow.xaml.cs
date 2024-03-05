@@ -101,8 +101,28 @@ namespace ChessUI
 
             if (moveCache.TryGetValue(position, out Move move))
             {
-                HandleMove(move);
+                if (move.Type == MoveType.PawnPromotion)
+                {
+                    HandlePromotion(move.From, move.ToPos);
+                }
+                else HandleMove(move);
             }   
+        }
+
+        private void HandlePromotion(Position from, Position to)
+        {
+            pieceImages[to.Row, to.Column].Source = Images.GetImage(gameState.CurrentPlayer, PieceType.Pawn);
+            pieceImages[from.Row, from.Column].Source = null;
+
+            PromotionMenu promotionMenu = new PromotionMenu(gameState.CurrentPlayer);
+            MenuContainer.Content = promotionMenu;
+
+            promotionMenu.PieceSelected += pieceType =>
+            {
+                MenuContainer.Content = null;
+                Move newMove = new PawnPromotion(from, to, pieceType);
+                HandleMove(newMove);
+            };
         }
 
         private void HandleMove(Move move)

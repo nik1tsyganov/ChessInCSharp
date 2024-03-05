@@ -17,6 +17,26 @@ namespace ClassLogic
             Color = color;
         }
 
+        private static bool IsUnmovedRook(Position pos, Board board)
+        {
+            return board[pos] != null && board[pos].Type == PieceType.Rook && !board[pos].HasMoved;
+        }
+
+        private static bool AllEmpty(IEnumerable<Position> positions, Board board)
+        {
+            return positions.All(pos => board.IsEmpty(pos));
+        }
+
+        private bool CanCastleKingSide(Position kingPos, Board board)
+        {
+            return !this.HasMoved && IsUnmovedRook(new Position(kingPos.Row, 7), board) && AllEmpty(new Position[] { new Position(kingPos.Row, 5), new Position(kingPos.Row, 6) }, board);
+        }
+
+        private bool CanCastleQueenSide(Position kingPos, Board board)
+        {
+            return !this.HasMoved && IsUnmovedRook(new Position(kingPos.Row, 0), board) && AllEmpty(new Position[] { new Position(kingPos.Row, 1), new Position(kingPos.Row, 2), new Position(kingPos.Row, 3) }, board);
+        }
+
         public override Piece Copy()
         {
             King copy = new King(this.Color);
@@ -38,7 +58,20 @@ namespace ClassLogic
 
         public override IEnumerable<Move> GetMoves(Position position, Board board)
         {
-            return MovePositions(position, board).Select(pos => new NormalMove(position, pos));
+            foreach (Position pos in MovePositions(position, board))
+            {
+                yield return new NormalMove(position, pos);
+            }
+
+            if (CanCastleKingSide(position, board))
+            {
+                yield return new Castle(MoveType.CastleKS, position);
+            }
+
+            if (CanCastleQueenSide(position, board))
+            {
+                yield return new Castle(MoveType.CastleQS, position);
+            }
         }
 
         public override bool CanCaptureOpponentKing(Position from, Board board)

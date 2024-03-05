@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace ClassLogic
 {
@@ -51,7 +52,15 @@ namespace ClassLogic
             Position next = pos + forward;
             if (CanMoveTo(next, board))
             {
-                yield return new NormalMove(pos, next);
+                if (next.Row == 0 || next.Row == 7)
+                {
+                    foreach (Move move in PromotionMoves(pos, next))
+                    {
+                        yield return move;
+                    }
+                }
+                else  yield return new NormalMove(pos, next);
+
                 if (!HasMoved)
                 {
                     next += forward;
@@ -69,11 +78,25 @@ namespace ClassLogic
             Position right = pos + forward + Direction.East;
             if (CanCaptureAt(left, board))
             {
-                yield return new NormalMove(pos, left);
+                if (left.Row == 0 || left.Row == 7)
+                {
+                    foreach (Move move in PromotionMoves(pos, left))
+                    {
+                        yield return move;
+                    }
+                }
+                else yield return new NormalMove(pos, left);
             }
             if (CanCaptureAt(right, board))
             {
-                yield return new NormalMove(pos, right);
+                if (right.Row == 0 || right.Row == 7)
+                {
+                    foreach (Move move in PromotionMoves(pos, right))
+                    {
+                        yield return move;
+                    }
+                }
+                else yield return new NormalMove(pos, right);
             }
         }
 
@@ -85,6 +108,14 @@ namespace ClassLogic
         public override bool CanCaptureOpponentKing(Position from, Board board)
         {
             return DiagonalMoves(from, board).Any(move => board[move.ToPos] != null && board[move.ToPos].Type == PieceType.King);
+        }
+
+        private static IEnumerable<Move> PromotionMoves(Position from, Position to)
+        {
+            yield return new PawnPromotion(from, to, PieceType.Queen);
+            yield return new PawnPromotion(from, to, PieceType.Rook);
+            yield return new PawnPromotion(from, to, PieceType.Bishop);
+            yield return new PawnPromotion(from, to, PieceType.Knight);
         }
     }
 }
